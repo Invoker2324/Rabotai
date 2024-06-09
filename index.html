@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Акустика</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .acoustic-item { margin-bottom: 10px; }
+        .acoustic-item strong { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Управление акустикой</h1>
+    <form id="acousticForm">
+        <input type="text" id="type" placeholder="Тип" required>
+        <input type="text" id="amplifier" placeholder="Усилитель" required>
+        <input type="number" id="maxPower" placeholder="Макс. мощность" required>
+        <input type="text" id="bodyMaterial" placeholder="Материал корпуса" required>
+        <input type="date" id="releaseDate" placeholder="Дата выхода на рынок" required>
+        <input type="number" id="cost" placeholder="Стоимость" required>
+        <button type="submit">Добавить</button>
+    </form>
+
+    <h2>Список акустики</h2>
+    <div id="acousticsList"></div>
+
+    <h2>Статистика</h2>
+    <div id="statistics"></div>
+
+    <script>
+        class Acoustic {
+            constructor(type, amplifier, maxPower, bodyMaterial) {
+                this._type = type;
+                this.amplifier = amplifier;
+                this.maxPower = maxPower;
+                this.bodyMaterial = bodyMaterial;
+            }
+
+            get type() {
+                return this._type;
+            }
+
+            set type(value) {
+                this._type = value;
+            }
+
+            displayInfo() {
+                return `Тип: ${this.type}, Усилитель: ${this.amplifier}, Макс. мощность: ${this.maxPower} Вт, Материал корпуса: ${this.bodyMaterial}`;
+            }
+        }
+
+        class MarketAcoustic extends Acoustic {
+            constructor(type, amplifier, maxPower, bodyMaterial, releaseDate, cost) {
+                super(type, amplifier, maxPower, bodyMaterial);
+                this.releaseDate = releaseDate;
+                this.cost = cost;
+            }
+
+            displayInfo() {
+                return `${super.displayInfo()}, Дата выхода на рынок: ${this.releaseDate}, Стоимость: ${this.cost} руб.`;
+            }
+        }
+
+        const marketAcoustics = [];
+
+        document.getElementById('acousticForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const type = document.getElementById('type').value;
+            const amplifier = document.getElementById('amplifier').value;
+            const maxPower = document.getElementById('maxPower').value;
+            const bodyMaterial = document.getElementById('bodyMaterial').value;
+            const releaseDate = document.getElementById('releaseDate').value;
+            const cost = parseInt(document.getElementById('cost').value);
+
+            const acoustic = new MarketAcoustic(type, amplifier, maxPower, bodyMaterial, releaseDate, cost);
+            marketAcoustics.push(acoustic);
+            displayAcoustic(acoustic);
+            updateStatistics();
+        });
+
+        function displayAcoustic(acoustic) {
+            const div = document.createElement('div');
+            div.className = 'acoustic-item';
+            div.textContent = acoustic.displayInfo();
+            document.getElementById('acousticsList').appendChild(div);
+        }
+
+        function updateStatistics() {
+            const statisticsDiv = document.getElementById('statistics');
+            statisticsDiv.innerHTML = '';
+
+            if (marketAcoustics.length > 0) {
+                const totalCost = marketAcoustics.reduce((sum, acoustic) => sum + acoustic.cost, 0);
+                const averageCost = totalCost / marketAcoustics.length;
+                const aboveAverageCount = marketAcoustics.filter(acoustic => acoustic.cost > averageCost).length;
+
+                let maxCostAcoustic = marketAcoustics[0];
+                let minCostAcoustic = marketAcoustics[0];
+
+                marketAcoustics.forEach(acoustic => {
+                    if (acoustic.cost > maxCostAcoustic.cost) {
+                        maxCostAcoustic = acoustic;
+                    }
+                    if (acoustic.cost < minCostAcoustic.cost) {
+                        minCostAcoustic = acoustic;
+                    }
+                });
+
+                statisticsDiv.innerHTML += `<div>Суммарная стоимость: ${totalCost} руб.</div>`;
+                statisticsDiv.innerHTML += `<div>Средняя стоимость объекта: ${averageCost.toFixed(2)} руб.</div>`;
+                statisticsDiv.innerHTML += `<div>Количество объектов с стоимостью выше средней: ${aboveAverageCount}</div>`;
+                statisticsDiv.innerHTML += `<div>Объект с максимальной стоимостью: ${maxCostAcoustic.displayInfo()}</div>`;
+                statisticsDiv.innerHTML += `<div>Объект с минимальной стоимостью: ${minCostAcoustic.displayInfo()}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
